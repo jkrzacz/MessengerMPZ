@@ -12,12 +12,16 @@ from Auth.utils import (
 from Auth.deps import get_current_user
 from Services.UserService import UserService
 from Services.ChatService import ChatService
+from Services.MessageService import MessageService
 from Services.ChatReaderService import ChatReaderService
+from Services.MessageReaderService import MessageReaderService
 from Services.FacebookService import FacebookService
 
 from Models.User import User, SystemUser
 from Models.Chat import CreateChat, Chat
 from Models.ChatReader import ChatReader
+from Models.Message import CreateMessage, Message
+from Models.MessageReader import CreateMessageReader, MessageReader
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -185,3 +189,103 @@ async def get_chat_readers(chat_id: int, user: SystemUser = Depends(get_current_
             )
 
     return user_ids_in_chat
+
+
+@app.get('/chat/messages', summary='Get messages for chat, set as read for user requesting messages')
+async def get_chat_readers(chat_id: int,  take: int,  skip: int, user: SystemUser = Depends(get_current_user)):
+    user_ids_in_chat = ChatReaderService().get_users_for_chat(chat_id)
+    if not user.id in user_ids_in_chat:
+        if user.is_admin == False:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Chat not found"
+            )
+
+    return MessageService().get_messages_for_chat(chat_id, user.id, take, skip)
+
+
+@app.post('/chat/message', summary="add chat message", response_model=Message)
+async def create_chat_message(data: CreateMessage, user: SystemUser = Depends(get_current_user)):
+    chat = ChatService().get_chat(data.chat_id)
+    if chat is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Chat not found"
+        )
+
+    addUser = UserService().get_user_for_id(data.user_id)
+    if addUser is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User not found"
+        )
+
+    service = ChatReaderService()
+    user_ids_in_chat = ChatReaderService().get_users_for_chat(data.chat_id)
+    if user.is_admin == False:
+        if not user.id in user_ids_in_chat:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Chat not found"
+            )
+
+        if user.id != data.user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="you cant create message for other users"
+            )
+
+    return MessageService().add_message(data.chat_id, data.user_id, data.message)
+
+
+@app.post('/chat/message/reader', summary="add chat message reader", response_model=MessageReader)
+async def create_message_reader(data: CreateMessageReader, user: SystemUser = Depends(get_current_user)):
+    message = MessageService().get_message(data.message_id)
+    if message is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Message not found"
+        )
+
+    userToAdd = UserService().get_user_for_id(data.user_id)
+    if userToAdd is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User not found"
+        )
+
+    if user.is_admin == False:
+        user_ids_in_chat = ChatReaderService().get_users_for_chat(message.chat_id)
+        if not user.id in user_ids_in_chat:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Chat not found"
+            )
+
+        if user.id != data.user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="you cant read message for other users"
+            )
+
+    return MessageReaderService().add_message_reader(data.message_id, data.user_id)
+
+
+@app.get('/chat/message/readers', summary='Get readers for message')
+async def get_chat_readers(message_id: int, user: SystemUser = Depends(get_current_user)):
+    message = MessageService().get_message(message_id)
+    if message is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Message not found"
+        )
+
+    user_ids_in_chat = ChatReaderService().get_users_for_chat(message.chat_id)
+    if not user.id in user_ids_in_chat:
+        if user.is_admin == False:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Chat not found"
+            )
+
+    return MessageReaderService().get_message_readers_for_message(message_id)
