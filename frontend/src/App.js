@@ -2,12 +2,28 @@ import "./App.css";
 import { NavLink, Redirect, Route, Switch } from "react-router-dom";
 import Login from "./components/Auth/Login";
 import Register from "./components/Auth/Register";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import MainHeader from "./components/UI/MainHeaderPage";
+import { useEffect } from "react";
+import { userActions } from "./store/user-slice";
+import DataService from "./components/API/DataService";
+import UserDetails from "./components/User/UserDetails";
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
   const isAdmin = useSelector((state) => state.user.isAdmin);
+  const token = useSelector((state) => state.user.token);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      DataService.me(token).then((res) => {
+        if (res.data) {
+          dispatch(userActions.setUserInfo(res.data));
+        }
+      });
+    }
+  }, [token, isLoggedIn, dispatch]);
 
   return (
     <>
@@ -32,7 +48,7 @@ function App() {
           </Route>
           <Route path="/user-info">
             {!isLoggedIn && <Redirect to="/login" />}
-            {/* {isLoggedIn && <UserDetails />} */}
+            {isLoggedIn && <UserDetails />}
           </Route>
           <Route path="/chat/:id">
             {!isLoggedIn && <Redirect to="/login" />}

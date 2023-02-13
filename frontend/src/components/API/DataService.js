@@ -34,6 +34,14 @@ const DataService = {
       },
     });
   },
+
+  me: (token) => {
+    return API.get("/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
 };
 
 export default DataService;
