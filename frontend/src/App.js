@@ -4,12 +4,13 @@ import Login from "./components/Auth/Login";
 import Register from "./components/Auth/Register";
 import { useDispatch, useSelector } from "react-redux";
 import MainHeader from "./components/UI/MainHeaderPage";
+import ChatPage from "./components/UI/ChatPage";
+import UserDetails from "./components/User/UserDetails";
 import { useEffect } from "react";
 import { userActions } from "./store/user-slice";
-import DataService from "./components/API/DataService";
-import UserDetails from "./components/User/UserDetails";
-import ChatPage from "./components/UI/ChatPage";
 import ChatDetailsWrapper from "./components/Wrappers/ChatDetailsWrapper";
+import AdminPanel from "./components/UI/AdminPanel";
+import DataService from "./components/API/DataService";
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
@@ -58,7 +59,7 @@ function App() {
           </Route>
           <Route path="/admin-panel">
             {(!isLoggedIn || !isAdmin) && <Redirect to="/login" />}
-            {/* {isLoggedIn && isAdmin && <AdminPanel />} */}
+            {isLoggedIn && isAdmin && <AdminPanel />}
           </Route>
           <Route component={NotFound} />
         </Switch>

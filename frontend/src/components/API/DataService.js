@@ -51,6 +51,56 @@ const DataService = {
     });
   },
 
+  getMessages: (token, chatId) => {
+    return API.get("/chat/messages", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        chat_id: chatId,
+        take: 100,
+        skip: 0,
+      },
+    });
+  },
+
+  getChatReaders: (token, chatId) => {
+    return API.get("/chat/readers", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        chat_id: chatId,
+      },
+    });
+  },
+
+  sendMessage: (token, chatId, messageSender, message) => {
+    const data = JSON.stringify({
+      chat_id: chatId,
+      user_id: messageSender,
+      message,
+    });
+
+    return API.post("/chat/message", data, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  getMessageReaders: (token, messageId) => {
+    return API.get("/chat/message/readers", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        message_id: messageId,
+      },
+    });
+  },
+
   getChats: (token) => {
     return API.get("/chats", {
       headers: {
@@ -83,28 +133,25 @@ const DataService = {
     });
   },
 
-  getChatReaders: (token, chatId) => {
-    return API.get("/chat/readers", {
+  deleteUser: (token, userId) => {
+    return API.delete("/user", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
       params: {
-        chat_id: chatId,
+        user_id: userId,
       },
     });
   },
 
-  sendMessage: (token, chatId, messageSender, message) => {
-    const data = JSON.stringify({
-      chat_id: chatId,
-      user_id: messageSender,
-      message,
-    });
-
-    return API.post("/chat/message", data, {
+  changeAdmin: (token, userId, isAdmin) => {
+    return API.post("/user/admin", null, {
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
+      },
+      params: {
+        user_id: userId,
+        is_admin: isAdmin,
       },
     });
   },
