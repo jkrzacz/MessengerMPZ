@@ -11,9 +11,13 @@ from Auth.utils import (
 )
 from Auth.deps import get_current_user
 from Services.UserService import UserService
+from Services.ChatService import ChatService
+from Services.ChatReaderService import ChatReaderService
 from Services.FacebookService import FacebookService
 
 from Models.User import User, SystemUser
+from Models.Chat import CreateChat, Chat
+from Models.ChatReader import ChatReader
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -119,3 +123,65 @@ async def change_admin(user_id: int, is_admin: bool, user: SystemUser = Depends(
         )
 
     return UserService().change_admin(user_id,is_admin)
+
+@app.post('/chat', summary="Create new chat", response_model=Chat)
+async def create_chat(data: CreateChat, user: SystemUser = Depends(get_current_user)):
+    chat = ChatService().add_chat(user.id,data.name)
+    ChatReaderService().add_chat_reader(chat.id,user.id)
+    return chat
+
+
+@app.get('/chats', summary='Get chats from logged user')
+async def get_chats(user: SystemUser = Depends(get_current_user)):
+    chatService = ChatService()
+    if user.is_admin == True:
+        return chatService.get_all_chats()
+
+    chat_ids = ChatReaderService().get_chats_for_user(user.id)
+    chats = []
+    for chat_id in chat_ids:
+        chat = chatService.get_chat(chat_id)
+        chats.append(chat)
+
+    return chats
+
+
+@app.post('/chat/reader', summary="add chat reader", response_model=ChatReader)
+async def create_chat(data: ChatReader, user: SystemUser = Depends(get_current_user)):
+    chat = ChatService().get_chat(data.chat_id)
+    if chat is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Chat not found"
+        )
+
+    userToAdd = UserService().get_user_for_id(data.user_id)
+    if userToAdd is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User not found"
+        )
+
+    service = ChatReaderService()
+    user_ids_in_chat = service.get_users_for_chat(data.chat_id)
+    if not user.id in user_ids_in_chat:
+        if user.is_admin == False:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Chat not found"
+            )
+
+    return service.add_chat_reader(data.chat_id,data.user_id)
+
+
+@app.get('/chat/readers', summary='Get readers for chat')
+async def get_chat_readers(chat_id: int, user: SystemUser = Depends(get_current_user)):
+    user_ids_in_chat = ChatReaderService().get_users_for_chat(chat_id)
+    if not user.id in user_ids_in_chat:
+        if user.is_admin == False:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Chat not found"
+            )
+
+    return user_ids_in_chat
