@@ -8,7 +8,7 @@ import {
   MessageInput,
   ConversationHeader,
 } from "@chatscope/chat-ui-kit-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DataService from "../API/DataService";
 import MessagesUtil from "./MessageUtil";
 
@@ -33,6 +33,20 @@ const ChatDetails = ({
       setMessages(messageList);
     });
   };
+
+  const [time, setTime] = useState(Date.now());
+  // Fetch messages every 2 seconds
+  useEffect(() => {
+    getMessages();
+
+    const interval = setInterval(() => {
+      getMessages();
+      setTime(Date.now());
+    }, 2000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [getMessages]);
 
   const handleSendMessage = (message) => {
     DataService.sendMessage(token, chatId, currentUserId, message).then(

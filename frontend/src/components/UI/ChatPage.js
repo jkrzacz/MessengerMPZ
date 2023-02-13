@@ -50,6 +50,20 @@ const ChatPage = () => {
     setEnteredCreation(!enteredCreation);
   };
 
+  const [time, setTime] = useState(Date.now());
+  // Fetch messages every 5 seconds
+  useEffect(() => {
+    getChats();
+
+    const interval = setInterval(() => {
+      getChats();
+      setTime(Date.now());
+    }, 5000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+
   return (
     <main>
       {isLoggedIn && (
