@@ -9,6 +9,7 @@ import { userActions } from "./store/user-slice";
 import DataService from "./components/API/DataService";
 import UserDetails from "./components/User/UserDetails";
 import ChatPage from "./components/UI/ChatPage";
+import ChatDetailsWrapper from "./components/Wrappers/ChatDetailsWrapper";
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
@@ -53,7 +54,7 @@ function App() {
           </Route>
           <Route path="/chat/:id">
             {!isLoggedIn && <Redirect to="/login" />}
-            {/* {isLoggedIn && <ChatDetailsWrapper />} */}
+            {isLoggedIn && <ChatDetailsWrapper />}
           </Route>
           <Route path="/admin-panel">
             {(!isLoggedIn || !isAdmin) && <Redirect to="/login" />}

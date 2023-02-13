@@ -82,6 +82,32 @@ const DataService = {
       },
     });
   },
+
+  getChatReaders: (token, chatId) => {
+    return API.get("/chat/readers", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        chat_id: chatId,
+      },
+    });
+  },
+
+  sendMessage: (token, chatId, messageSender, message) => {
+    const data = JSON.stringify({
+      chat_id: chatId,
+      user_id: messageSender,
+      message,
+    });
+
+    return API.post("/chat/message", data, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
 };
 
 export default DataService;
