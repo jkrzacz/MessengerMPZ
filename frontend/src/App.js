@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { userActions } from "./store/user-slice";
 import DataService from "./components/API/DataService";
 import UserDetails from "./components/User/UserDetails";
+import ChatPage from "./components/UI/ChatPage";
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
@@ -32,19 +33,19 @@ function App() {
         <Switch>
           <Route path="/" exact>
             {!isLoggedIn && <Redirect to="/login" />}
-            {/* {isLoggedIn && <Redirect to="/chat" />} */}
+            {isLoggedIn && <Redirect to="/chat" />}
           </Route>
           <Route path="/login">
             {!isLoggedIn && <Login />}
-            {/* {isLoggedIn && <Redirect to="/chat" />} */}
+            {isLoggedIn && <Redirect to="/chat" />}
           </Route>
           <Route path="/register">
             {!isLoggedIn && <Register />}
-            {/* {isLoggedIn && <Redirect to="/chat" />} */}
+            {isLoggedIn && <Redirect to="/chat" />}
           </Route>
           <Route path="/chat" exact>
             {!isLoggedIn && <Redirect to="/login" />}
-            {/* {isLoggedIn && <ChatPage />} */}
+            {isLoggedIn && <ChatPage />}
           </Route>
           <Route path="/user-info">
             {!isLoggedIn && <Redirect to="/login" />}
