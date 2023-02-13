@@ -42,6 +42,46 @@ const DataService = {
       },
     });
   },
+
+  getAllUsers: (token) => {
+    return API.get("/users", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  getChats: (token) => {
+    return API.get("/chats", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  createChat: (token, chatName) => {
+    const data = JSON.stringify({ name: chatName });
+    return API.post("/chat", data, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  addChatReader: (token, chatId, userId) => {
+    const data = JSON.stringify({
+      chat_id: chatId,
+      user_id: userId,
+    });
+
+    return API.post("/chat/reader", data, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
 };
 
 export default DataService;
