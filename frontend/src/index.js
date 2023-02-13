@@ -12,4 +12,10 @@ store.subscribe(() => {
   localStorage.setItem("reduxState", JSON.stringify(store.getState()));
 });
 
-root.render(<App />);
+root.render(
+  <Provider store={store}>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </Provider>
+);
